@@ -505,7 +505,7 @@ Write for experienced MBA professionals. Be direct and analytical.`;
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true'},
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20251001',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1500,
         tools: [{"type": "web_search_20250305", "name": "web_search"}],
         system: SYSTEM,
@@ -590,7 +590,7 @@ async function sendMessage() {
 
   // Step 1: classify the question (fast Haiku call)
   const category = await classifyQuestion(text);
-  const model = category === 'SYLLABUS' ? 'claude-haiku-4-5-20251001' : 'claude-sonnet-4-5-20251001';
+  const model = category === 'SYLLABUS' ? 'claude-haiku-4-5-20251001' : 'claude-sonnet-4-6';
   const maxTokens = category === 'SYLLABUS' ? 400 : 800;
 
   // Step 2: answer with appropriate model
