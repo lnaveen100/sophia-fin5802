@@ -58,7 +58,7 @@
 <div id="app">
   <div id="header">
     <div id="avatar">
-      <img id="avatar-img" src="https://i.imgur.com/cvkNV3h.jpeg" alt="Sophia" style="display:block;"/>
+      <img id="avatar-img" src="https://drive.google.com/uc?export=view&id=194KlkQ-tkRcsDTBr4_UxvUquiojpkD8u" alt="Sophia" style="display:block;"/>
       <span id="avatar-letter" style="display:none;">S</span>
     </div>
     <div id="header-text">
@@ -76,7 +76,7 @@
 
   <div id="messages">
     <div class="msg sophia">
-      <div class="msg-av"><img id="sophia-av-img" src="https://i.imgur.com/cvkNV3h.jpeg" alt="" style="display:block;"/><span style="display:none;">S</span></div>
+      <div class="msg-av"><img id="sophia-av-img" src="https://drive.google.com/uc?export=view&id=194KlkQ-tkRcsDTBr4_UxvUquiojpkD8u" alt="" style="display:block;"/><span style="display:none;">S</span></div>
       <div class="bubble">
         <p>Hi! I'm Sophia, your teaching assistant for FIN 5802 — Enterprise Financial Management at Temple's Fox School of Business.</p>
         <p>I can help you with anything covered in this course: financial statement analysis, time value of money, NPV and investment rules, capital budgeting, bond and stock valuation, risk and return, WACC, and valuation multiples. I can also answer questions about deadlines, assignments, and course policies.</p>
@@ -103,7 +103,7 @@
 
 <script>
 // ── TO ADD SOPHIA'S PHOTO: paste the public image URL below ──
-const SOPHIA_IMAGE_URL = 'https://i.imgur.com/cvkNV3h.jpeg'; // e.g. 'https://yoursite.com/sophia.jpg'
+const SOPHIA_IMAGE_URL = 'https://drive.google.com/uc?export=view&id=194KlkQ-tkRcsDTBr4_UxvUquiojpkD8u'; // e.g. 'https://yoursite.com/sophia.jpg'
 
 const SYSTEM = `You are Sophia, a professional but warm and approachable teaching assistant for FIN 5802: Enterprise Financial Management at Temple University's Fox School of Business. The instructor is Dr. Lalitha Naveen (lnaveen@temple.edu). The course runs May-June 2026.
 
@@ -122,7 +122,6 @@ PERMITTED TOPICS:
 9. Valuation Multiples — McKinsey article: proper use of multiples, EV multiples, forward-looking multiples, comparable companies, P/E limitations
 10. Corporate organizational form, agency problems, goal of the firm (shareholder wealth maximization)
 11. Course logistics: deadlines, assignments, grading, policies
-12. Current financial news and real-world business events that connect to any of the above topics. When a student asks for a news article or current events related to course material, Sophia MUST use her web search capability to find and summarize a relevant recent article, then connect it explicitly to the course topic. Sophia has web search access and should use it for news requests — she should never tell students she cannot access the internet.
 
 === COURSE SCHEDULE & DEADLINES ===
 - Quiz 1 due: Mon May 4 by 8PM (Financial Statement Analysis)
@@ -322,9 +321,18 @@ Key course connections for both discussion boards:
 - Financial ratio analysis to evaluate company performance (Ch 2-3)
 
 === BEHAVIORAL RULES ===
-1. TOPIC SCOPE: If asked about any topic NOT in the permitted list, say clearly: "That topic is not covered in FIN 5802. I can only help with the course material." Then list the most relevant topics you can help with. Do not answer out-of-scope questions even partially. However, news and current events that connect to course topics are always in scope.
+1. TOPIC SCOPE: If asked about any topic NOT in the permitted list, say clearly: "That topic is not covered in FIN 5802. I can only help with the course material." Then list the most relevant topics you can help with. Do not answer out-of-scope questions even partially.
 
-2. HOMEWORK/QUIZ RULE: Never solve a homework or quiz problem directly. Instead: (a) identify the concept being tested, (b) create a SIMILAR problem with different numbers, (c) solve YOUR version step by step explaining the WHY behind each step, (d) ask if they can now apply the same logic to their problem.
+2. HOMEWORK/QUIZ RULE: Never solve a homework or quiz problem directly. Instead: (a) identify the concept being tested, (b) create a SIMILAR problem with COMPLETELY DIFFERENT numbers, (c) solve YOUR version step by step explaining the WHY behind each step, (d) ask if they can now apply the same logic to their problem. CRITICAL: After working through your analogous example, do NOT restate or set up the equation using the student's actual numbers, values, or parameters. Stop after your example and ask them to try it themselves.
+
+3. EXCEL RULE: This is an MBA course. Always show how to solve problems using Excel functions. Never use financial calculator keystrokes. Never show trial-and-error or manual iteration methods. For every quantitative problem, show the exact Excel function with syntax. Key functions:
+- Bond YTM: =RATE(nper, pmt, pv, fv) where pv is entered as negative
+- Bond Price: =PV(rate, nper, pmt, fv) where result will be negative, take absolute value
+- NPV: =NPV(rate, cf1:cfn) + cf0
+- IRR: =IRR(cf0:cfn)
+- PV of annuity: =PV(rate, nper, pmt)
+- FV: =FV(rate, nper, pmt, pv)
+Always explain what each argument represents in plain English before showing the function.
 
 3. TONE: Professional but warm and approachable. Encouraging and patient but academically rigorous. Not sycophantic.
 
@@ -334,8 +342,8 @@ Key course connections for both discussion boards:
 
 6. IDENTITY: You are Sophia, AI teaching assistant for FIN 5802. You are NOT Dr. Naveen. For grade disputes, accommodations, extensions, or policy exceptions, direct students to Dr. Naveen at lnaveen@temple.edu.`;
 
-// API key is stored securely on the server - no key needed here
-const HARDCODED_API_KEY = 'VERCEL_BACKEND';
+// ── PASTE YOUR ANTHROPIC API KEY BELOW (replace YOUR_API_KEY_HERE) ──
+const HARDCODED_API_KEY = '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';
 
 let apiKey = HARDCODED_API_KEY;
 let history = [];
@@ -374,7 +382,25 @@ function saveKey() {
 }
 
 function fmt(text) {
-  return text.split('\n\n').filter(p => p.trim()).map(p => '<p>' + p.replace(/\n/g, '<br>') + '</p>').join('');
+  let html = text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/^### (.+)$/gm, '<h4 style="margin:10px 0 4px;font-size:14px;color:#344d88;">$1</h4>')
+    .replace(/^## (.+)$/gm, '<h3 style="margin:12px 0 6px;font-size:15px;color:#344d88;">$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2 style="margin:12px 0 6px;font-size:16px;color:#344d88;">$1</h2>')
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code style="background:#f0f2f8;padding:1px 5px;border-radius:4px;font-family:monospace;font-size:13px;">$1</code>')
+    .replace(/^---+$/gm, '<hr style="border:none;border-top:1px solid #e0e4f0;margin:10px 0;"/>')
+    .replace(/^[\*\-] (.+)$/gm, '<li style="margin:3px 0;">$1</li>')
+    .replace(/^\d+\. (.+)$/gm, '<li style="margin:3px 0;">$1</li>');
+  html = html.replace(/(<li[^>]*>.*?<\/li>\n?)+/gs, m => '<ul style="margin:6px 0 6px 18px;padding:0;">' + m + '</ul>');
+  return html.split(/\n\n+/).map(block => {
+    block = block.trim();
+    if (!block) return '';
+    if (/^<(h[1-6]|ul|ol|hr)/.test(block)) return block.replace(/\n/g, '');
+    return '<p style="margin:0 0 8px;">' + block.replace(/\n/g, '<br>') + '</p>';
+  }).join('');
 }
 
 function addMsg(role, text) {
@@ -475,13 +501,13 @@ Write for experienced MBA professionals. Be direct and analytical.`;
   showTyping();
 
   try {
-    const res = await fetch('/api/chat', {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 1500,
-        useWebSearch: true,
+        tools: [{"type": "web_search_20250305", "name": "web_search"}],
         system: SYSTEM,
         messages: [{role: 'user', content: newsPrompt}]
       })
@@ -521,12 +547,11 @@ asking for help understanding material, working through problems, homework help,
 quiz help, or anything requiring financial knowledge or explanation.
 
 When in doubt, classify as CONTENT.
-News-related follow-up questions, current events connected to finance topics, and questions about today's financial news are always CONTENT.
 Reply with exactly one word: SYLLABUS or CONTENT.`;
 
 async function classifyQuestion(text) {
   try {
-    const res = await fetch('/api/chat', {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
@@ -547,6 +572,12 @@ async function classifyQuestion(text) {
 
 async function sendMessage() {
   if (loading) return;
+  if (!apiKey) {
+    const s = document.getElementById('key-status');
+    s.textContent = 'Please enter and save your API key first.';
+    s.className = 'err';
+    return;
+  }
   const inp = document.getElementById('user-input');
   const text = inp.value.trim();
   if (!text) return;
@@ -559,12 +590,12 @@ async function sendMessage() {
 
   // Step 1: classify the question (fast Haiku call)
   const category = await classifyQuestion(text);
-  const model = 'claude-haiku-4-5-20251001';
+  const model = category === 'SYLLABUS' ? 'claude-haiku-4-5-20251001' : 'claude-sonnet-4-20250514';
   const maxTokens = category === 'SYLLABUS' ? 400 : 800;
 
   // Step 2: answer with appropriate model
   try {
-    const res = await fetch('/api/chat', {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
