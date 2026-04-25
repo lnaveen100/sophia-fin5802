@@ -1,25 +1,19 @@
 export default async function handler(req, res) {
-  // Allow requests from anywhere (needed for Canvas)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // Handle preflight
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { messages, useWebSearch } = req.body;
+    const { messages, useWebSearch, system, max_tokens } = req.body;
+    const model = req.body.model || 'claude-haiku-4-5-20251001';
 
     const body = {
-      model: req.body.model || 'claude-sonnet-4-20250514',
-      max_tokens: req.body.max_tokens || 800,
-      system: req.body.system,
+      model: model,
+      max_tokens: max_tokens || 800,
+      system: system,
       messages: messages
     };
 
@@ -32,7 +26,8 @@ export default async function handler(req, res) {
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
+        'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'web-search-2025-03-05'
       },
       body: JSON.stringify(body)
     });
