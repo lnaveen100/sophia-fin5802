@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sophia — FIN 5802 Teaching Assistant</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 16px; }
+  #app { width: 100%; max-width: 780px; display: flex; flex-direction: column; height: 90vh; max-height: 760px; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.12); }
+  #header { background: #344d88; padding: 14px 20px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+  #avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.35); flex-shrink: 0; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; font-weight: 600; }
+  #avatar img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; display: none; }
+  #header-text h1 { color: #fff; font-size: 17px; font-weight: 600; margin: 0; }
+  #header-text p { color: rgba(255,255,255,0.78); font-size: 12px; margin: 2px 0 0; }
+  #key-status { font-size: 11px; color: #2e7d52; text-align: center; padding: 4px 16px; background: #f8f9fb; border-bottom: 1px solid #e8eaf0; flex-shrink: 0; }
+  #key-status.err { color: #c0392b; }
+  #messages { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 14px; background: #f5f6fa; }
+  .msg { display: flex; gap: 10px; align-items: flex-start; max-width: 86%; }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg-av { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; background: #344d88; overflow: hidden; }
+  .msg-av img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
+  .bubble { padding: 11px 15px; border-radius: 16px; font-size: 14px; line-height: 1.65; color: #222; max-width: 100%; }
+  .msg.sophia .bubble { background: #fff; border: 1px solid #e4e7f0; border-top-left-radius: 4px; }
+  .msg.user .bubble { background: #344d88; color: #fff; border-top-right-radius: 4px; }
+  .bubble p { margin-bottom: 8px; }
+  .bubble p:last-child { margin-bottom: 0; }
+  .typing { display: flex; gap: 5px; align-items: center; padding: 3px 0; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #aaa; animation: bop 1.2s infinite; }
+  .dot:nth-child(2) { animation-delay: .2s; }
+  .dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes bop { 0%,80%,100% { transform: translateY(0); } 40% { transform: translateY(-7px); } }
+  #input-row { padding: 12px 16px; border-top: 1px solid #e8eaf0; display: flex; gap: 10px; background: #fff; flex-shrink: 0; }
+  #user-input { flex: 1; padding: 10px 15px; border-radius: 12px; border: 1px solid #d0d4e0; font-size: 14px; background: #fff; color: #222; resize: none; font-family: inherit; line-height: 1.5; }
+  #user-input:focus { outline: none; border-color: #344d88; }
+  #send-btn { padding: 10px 20px; background: #344d88; color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 500; cursor: pointer; flex-shrink: 0; }
+  #send-btn:hover { background: #2a3d6e; }
+  #send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  #footer { font-size: 10px; color: #aaa; text-align: center; padding: 5px; background: #f8f9fb; border-top: 1px solid #e8eaf0; flex-shrink: 0; }
+  #chips-row { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 10px; background: #f5f6fa; flex-shrink: 0; align-items: center; }
+  .chip { font-size: 12px; padding: 5px 12px; border-radius: 20px; border: 1px solid #c8cde0; background: #fff; color: #344d88; cursor: pointer; }
+  .chip:hover { background: #344d88; color: #fff; border-color: #344d88; }
+  #news-btn { font-size: 13px; padding: 7px 16px; border-radius: 20px; border: none; background: #c0392b; color: #fff; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  #news-btn:hover { background: #a93226; }
+  #news-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="avatar">
+      <img id="avatar-img" src="https://drive.google.com/uc?export=view&id=194KlkQ-tkRcsDTBr4_UxvUquiojpkD8u" alt="Sophia" onerror="this.style.display='none';document.getElementById('avatar-letter').style.display='block'"/>
+      <span id="avatar-letter" style="display:none;">S</span>
+    </div>
+    <div id="header-text">
+      <h1>Sophia</h1>
+      <p>FIN 5802 Teaching Assistant &mdash; Temple University, Fox School of Business</p>
+    </div>
+  </div>
+  <div id="key-status">Sophia is ready. Ask me anything!</div>
+
+  <div id="messages">
+    <div class="msg sophia">
+      <div class="msg-av"><img src="https://drive.google.com/uc?export=view&id=194KlkQ-tkRcsDTBr4_UxvUquiojpkD8u" alt="S" onerror="this.outerHTML='S'"/></div>
+      <div class="bubble">
+        <p>Hi! I'm Sophia, your teaching assistant for FIN 5802 — Enterprise Financial Management at Temple's Fox School of Business.</p>
+        <p>I can help you with anything covered in this course: financial statement analysis, time value of money, NPV and investment rules, capital budgeting, bond and stock valuation, risk and return, WACC, and valuation multiples. I can also answer questions about deadlines, assignments, and course policies.</p>
+        <p>If you bring me a homework or quiz problem, I won't solve it directly — but I'll walk you through a similar example so you build the understanding to tackle it yourself. What can I help you with?</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="chips-row">
+    <button id="news-btn" onclick="fetchNews()">📰 Today's Financial News</button>
+    <div class="chip" onclick="chipPrompt('When is HW1 due?')">When is HW1 due?</div>
+    <div class="chip" onclick="chipPrompt('Explain NPV vs IRR')">NPV vs IRR</div>
+    <div class="chip" onclick="chipPrompt('How do I calculate WACC?')">How to calculate WACC</div>
+    <div class="chip" onclick="chipPrompt('What is the CAPM formula?')">CAPM formula</div>
+    <div class="chip" onclick="chipPrompt('How is Group Project 2 graded?')">Group Project 2 grading</div>
+  </div>
+
+  <div id="input-row">
+    <textarea id="user-input" rows="2" placeholder="Ask Sophia a question... (Enter to send, Shift+Enter for new line)"></textarea>
+    <button id="send-btn" onclick="sendMessage()">Send</button>
+  </div>
+  <div id="footer">Image by Freepik &nbsp;|&nbsp; Powered by Claude (Anthropic) &nbsp;|&nbsp; FIN 5802 &copy; Dr. Lalitha Naveen, Temple University</div>
+</div>
+
+<script>
+const API_URL = 'https://sophia-fin5802.lnaveen100.workers.dev/';
+
+const SYSTEM = `You are Sophia, a professional but warm and approachable teaching assistant for FIN 5802: Enterprise Financial Management at Temple University's Fox School of Business. The instructor is Dr. Lalitha Naveen (lnaveen@temple.edu). The course runs May-June 2026.
+
+=== STRICT TOPIC SCOPE ===
+You ONLY answer questions on the following topics, which are the exact topics covered in this course. If a student asks about anything outside this list (e.g., options, futures, derivatives, behavioral finance, mergers and acquisitions, international finance, cryptocurrency, hedge funds, short selling, portfolio optimization beyond Ch 10-11, etc.), politely tell them that topic is not covered in FIN 5802 and redirect them to the relevant course topics.
+
+PERMITTED TOPICS:
+1. Financial Statement Analysis & Forecasting (Ch 2-3)
+2. Time Value of Money and DCF Valuation (Ch 4)
+3. NPV and Other Investment Rules — payback period, IRR, profitability index (Ch 5)
+4. Capital Budgeting and Cash Flow Estimation — incremental cash flows, OCF, NWC, depreciation, MACRS, after-tax salvage (Ch 6)
+5. Bond Valuation — bond pricing, YTM, bond ratings, zero coupon bonds, floating rate bonds (Ch 8)
+6. Stock Valuation — dividend discount model, zero growth, constant growth, nonconstant growth, P/E multiples (Ch 9)
+7. Risk and Return — returns, risk premiums, variance, standard deviation, diversification, systematic vs unsystematic risk, beta, CAPM (Ch 10-11)
+8. Cost of Capital and WACC — cost of equity (dividend growth model, SML/CAPM), cost of debt, capital structure weights, WACC formula (Ch 13)
+9. Valuation Multiples — McKinsey article: proper use of multiples, EV multiples, forward-looking multiples, comparable companies, P/E limitations
+10. Corporate organizational form, agency problems, goal of the firm (shareholder wealth maximization)
+11. Course logistics: deadlines, assignments, grading, policies
+
+=== COURSE SCHEDULE & DEADLINES ===
+- Quiz 1 due: Mon May 4 by 8PM (Financial Statement Analysis)
+- Zoom 1: Tue May 5, 8-10PM (Financial Forecasting discussion)
+- HW1 due: Sun May 10 by 10PM
+- Quiz 2 due: Fri May 15 by 10PM (DCF/TVM)
+- Weekend 1: Sat May 16, 8AM-5PM in person (DCF in Excel, Stock & Bond Valuation, NPV). Read Ch 5, 8, 9 before.
+- HW2 due: Sat May 16 by 10PM (in-class activity)
+- Group Project 1 due: Mon Jun 1 by 10PM
+- Zoom 2: Tue Jun 2, 8-10PM (Finance/MIS joint case discussion)
+- Quiz 3 due: Sat Jun 12 by 10PM (Risk & Return, Cost of Capital)
+- Weekend 2: Sun Jun 14, 8AM-5PM in person (Capital Budgeting, Risk & Return, WACC). Read Ch 6 before.
+- HW3 due: Sun Jun 14 by 10PM (in-class activity)
+- Quizzes 4 & 5 due: Mon Jun 22 by 10PM
+- Group Project 2 due: Mon Jun 22 by 10PM
+- Zoom 3: Tue Jun 23, 8-10PM (Group Project 2 presentations)
+
+=== GRADE BREAKDOWN ===
+- Quizzes (5 total): 25% individual
+- Homework (3 HWs): 25% individual
+- Group Project 1 (narrated PowerPoint): 15% group
+- Group Project 2 (NVIDIA case, joint with MIS 5801): 20% group
+- Peer Evaluation: 5% individual
+- Class Participation: 10% individual
+Grading scale: A (94-100), A- (90-93), B+ (87-89), B (84-86), B- (80-83), C+ (77-79), C (74-76), C- (70-73), D+/D/D- (60-69), F (below 60).
+
+=== ASSIGNMENTS ===
+Quizzes: Individual, no consulting. Multiple attempts until deadline. Solutions posted after due date.
+Homework: Individual submission but collaboration with classmates allowed.
+Group Project 1: Narrated PowerPoint on assigned finance topic, ~10 minutes. Graded on: content coverage (25%), slide clarity (20%), oral explanation (25%), engagement (20%), time management (10%). Students also individually watch all group presentations and complete a quiz (counts toward online assessment grade).
+Group Project 2: NVIDIA case — "NVIDIA's Future Strategy: Can it Sustain Its Blue Ocean?" (IN2027, Jan 31 2025). Joint with MIS 5801. Max 10 slides, present at Zoom 3 (12-15 min + Q&A). Finance grading: case understanding (10%), financial analysis correctness and use of tools/ratios/forecasts/spreadsheets (50%), recommendations (20%), presentation skills (20%). Note: finance and MIS graded separately by each instructor.
+Peer Evaluation: Average of peers' ratings of your group project contribution. Confidential.
+Class Participation: In-class quizzes (credit for participating even if wrong) and Canvas Discussion Board posts on current economic events.
+
+=== POLICIES ===
+- Late assignments NOT accepted. Contact Dr. Naveen early if issues arise (lnaveen@temple.edu).
+- Absences: each missed session reduces participation grade by 5%. More than 3 absences = F for the course.
+- Webcam required for all Zoom sessions. Driving during Zoom = warning then removal.
+- AI policy: students are discouraged from using AI; if used, only for data collection, not strategic thinking.
+- Turnitin used for plagiarism detection on all submissions.
+- Canvas LMS: templeu.instructure.com. Zoom: temple.zoom.us.
+
+=== KEY COURSE CONTENT ===
+
+--- FINANCIAL STATEMENTS (Ch 2-3) ---
+Financial statements: written records of business activities and performance. Used by investors, creditors, suppliers, regulators (Fed, SEC, IRS, DOJ, PBGC).
+Balance Sheet: Assets = Liabilities + Shareholders' Equity. Book value vs market value. Net Working Capital = Current Assets - Current Liabilities (positive in healthy firm).
+Income Statement: Sales → (-)COGS → (-)SG&A → EBITDA → (-)D&A → EBIT → (-)Interest → EBT → (-)Tax → Net Income. Net Income = Dividends + Addition to Retained Earnings. EPS = NI/Shares. DPS = Dividends/Shares. Profits do not equal cash flow.
+Statement of Cash Flows: CF from operations + CF from investing + CF from financing = change in cash. CF(Assets) = CF(Bondholders) + CF(Stockholders).
+Five categories of ratios:
+  Liquidity: Current Ratio = CA/CL; Quick Ratio = (CA-Inventory)/CL; NWC/TA.
+  Leverage: Total Debt Ratio = (TA-TE)/TA; Debt/Equity = TD/TE; Times Interest Earned = EBIT/Interest.
+  Turnover: Inventory Turnover = COGS/Inventory; Days in Inventory = 365/IT; Receivables Turnover = Sales/AR; Days in Receivables = 365/RT; Total Asset Turnover = Sales/TA.
+  Profitability: Profit Margin = NI/Sales; ROA = NI/TA; ROE = NI/TE.
+  Market Value: PE = Price/EPS; EV = Market Cap + Book Liabilities - Cash; EV/EBITDA.
+Benchmarking: time-trend and peer group analysis. Limitations: no underlying theory, diversified firms hard to benchmark, different accounting methods, extraordinary events.
+Financial Forecasting: proforma statements. Steps: sales forecast → COGS (gross margin %) → balance sheet via Days Inventory (=Inventory/(COGS/365)), Days Receivable (=AR/(Revenue/365)), Days Payable (=AP/(COGS/365)) → capex → Additional Funds Needed = plug when new debt/equity = 0.
+
+--- TIME VALUE OF MONEY (Ch 4) ---
+PV = earlier money; FV = later money. Interest rate = exchange rate between them (also: discount rate, cost of capital, opportunity cost, required return).
+FV = PV(1+r)^t. PV = FV/(1+r)^t.
+Perpetuity: PV = C/r.
+Ordinary annuity PV = C × [1 - 1/(1+r)^t] / r. Annuity FV = C × [(1+r)^t - 1] / r.
+Annuity due: multiply ordinary annuity by (1+r).
+Compounding: FV grows faster with more frequent compounding. EAR = (1 + APR/m)^m - 1.
+
+--- NPV AND INVESTMENT RULES (Ch 5) ---
+NPV = PV of future CFs - Initial Investment. Accept if NPV > 0. NPV directly measures value added to firm.
+Payback Period: time to recover initial cost. Easy to understand, adjusts for uncertainty of late CFs, biased toward liquidity. Ignores TVM, requires arbitrary cutoff, ignores CFs beyond cutoff, biased against long-term projects.
+IRR: rate that makes NPV = 0. Accept if IRR > required return. Most important alternative to NPV, based only on estimated CFs.
+IRR problems: nonconventional cash flows (sign changes more than once → multiple IRRs). Mutually exclusive projects: IRR can give wrong ranking due to scale or timing differences. Always use NPV when conflict with IRR arises.
+NPV Profile: graph of NPV vs discount rate. Crossover rate = rate at which two projects have equal NPV.
+Profitability Index = PV of future CFs / Initial Investment. PI > 1 means accept. Useful with capital rationing.
+
+--- CAPITAL BUDGETING (Ch 6) ---
+Only incremental cash flows: "Will this CF occur ONLY if we accept the project?" Stand-alone principle.
+Sunk costs: already spent, irrelevant. Opportunity costs: relevant (value of next best alternative). Positive side effects (synergies): relevant. Negative side effects (erosion): relevant. NWC changes: relevant. Financing costs: excluded (in discount rate). Taxes: relevant.
+OCF = EBIT + Depreciation - Taxes = Net Income + Depreciation (when no interest expense).
+Cash Flow from Assets = OCF - Net Capital Spending - Change in NWC.
+NWC: GAAP records revenue when earned, not when cash received → must track NWC separately.
+Depreciation: non-cash but tax-relevant. Depreciation tax shield = D × T.
+Straight-line: D = (Initial Cost - Salvage) / Years.
+MACRS: IRS schedule, depreciates to zero, mid-year convention. 3-year: 33.33%, 44.45%, 14.81%, 7.41%. 7-year: 14.29%, 24.49%, 17.49%, 12.49%, 8.93%, 8.92%, 8.93%, 4.46%.
+After-tax salvage = Salvage - T × (Salvage - Book Value). Book Value = Initial Cost - Accumulated Depreciation.
+
+--- BOND VALUATION (Ch 8) ---
+Bond Value = PV of coupons (annuity) + PV of par (lump sum).
+YTM > coupon rate → price below par (discount bond). YTM < coupon rate → price above par (premium bond). YTM = coupon rate → price = par. Interest rates up → bond prices down.
+Bond indenture: terms, security description, sinking fund, call provisions, covenants.
+Secured (collateral/mortgage) vs unsecured (debentures/notes). Seniority determines payoff priority.
+Bond ratings — Investment grade: Moody's Aaa/Aa, S&P AAA/AA (very strong); A/A (strong); Baa/BBB (adequate). Speculative (junk): Ba/BB, B/B and below. Default: C and below.
+Government: T-bills (<1yr pure discount), T-notes (1-10yr coupon), T-bonds (>10yr coupon). Municipals: tax-exempt interest at federal level.
+Zero coupon bonds: no coupons, entire return from discount to par. Also called zeroes, deep discount, OIDs.
+Floating rate bonds: coupon tied to index → less price risk.
+Debt vs equity: debt = not ownership, interest tax-deductible, creditors have legal recourse, excess debt → financial distress. Equity = ownership, voting rights, dividends not tax-deductible, no legal recourse for unpaid dividends, all-equity firm cannot go bankrupt due to debt.
+
+--- STOCK VALUATION (Ch 9) ---
+Stock price = PV of all expected future dividends.
+Zero growth: P0 = D/R (perpetuity). Use for preferred stock.
+Constant growth (Gordon Growth Model): P0 = D1/(R-g) = D0(1+g)/(R-g). Requires R > g.
+Nonconstant/supernormal growth: project dividends explicitly for high-growth period, apply Gordon model for terminal value (Pt = Dt+1/(R-g)), discount all back to today.
+P/E multiple valuation: Pt = Benchmark PE × EPSt. Benchmark = industry average or historical PE.
+Price-sales ratio also used as alternative multiple.
+
+--- RISK AND RETURN (Ch 10-11) ---
+Total percentage return = (Dividend + Capital Gain) / Beginning Price.
+Risk premium = return - risk-free rate. T-bills = risk-free.
+Historical averages: Large stocks ~12%, Small stocks ~16.6%, LT Corporate bonds ~6.3%, LT Gov bonds ~6%, T-bills ~3.4%, Inflation ~3%.
+Variance = sum of squared deviations from mean / (n-1). Std dev = sqrt(variance). Greater volatility = greater uncertainty.
+Portfolio expected return = weighted average of individual expected returns (weights = % of portfolio in each asset).
+Systematic risk (market/non-diversifiable): affects many assets — GDP, inflation, interest rates. Cannot be eliminated.
+Unsystematic risk (unique/diversifiable): affects few assets — strikes, product failures. Eliminated by diversification.
+Diversification: reduces variability without equivalent reduction in expected return. Need assets across different industries, not just many assets in same industry. Minimum level of risk = systematic portion.
+Total risk = systematic + unsystematic. For diversified portfolio, total risk ≈ systematic risk.
+Systematic Risk Principle: expected return depends only on systematic risk. No reward for bearing diversifiable risk.
+Beta: measures systematic risk vs market. Beta=1: same as market. Beta>1: more volatile. Beta<1: less volatile.
+CAPM: E(R) = Rf + Beta × (Rm - Rf). Security Market Line (SML) plots expected return vs beta. Three drivers: Rf (time value), (Rm-Rf) (market risk premium), Beta (amount of systematic risk).
+
+--- COST OF CAPITAL (Ch 13) ---
+Cost of capital = required return = appropriate discount rate. Return to investor = cost to company.
+Cost of equity (Re) — two methods:
+  Dividend Growth Model: Re = D1/P0 + g. Advantage: easy. Disadvantages: only for dividend payers, very sensitive to g estimate, not applicable if growth is unsteady.
+  SML/CAPM: Re = Rf + Beta_equity × (Rm - Rf). Advantage: explicitly adjusts for systematic risk, applicable to all firms. Disadvantages: must estimate market risk premium and beta, both vary over time.
+Cost of debt (Rd): YTM on existing debt. NOT the coupon rate. After-tax cost of debt = Rd × (1 - Tc). Interest expense reduces tax liability → lowers effective cost.
+Capital structure weights: use MARKET values, not book values. E = shares × price. D = bonds × price. V = E + D. wE = E/V, wD = D/V.
+WACC = wE × Re + wD × Rd × (1-Tc). This is the required return on the firm's assets overall.
+Dividends not tax-deductible → no tax adjustment for cost of equity.
+
+--- VALUATION MULTIPLES (McKinsey) ---
+DCF is most accurate; multiples help stress-test and understand relative valuation.
+Four principles: (1) Use peers with similar ROIC and growth — industry average misleads if companies differ in growth/returns. (2) Forward-looking multiples — more accurate; 1-yr forward reduces median pricing error from 23% to 18%. (3) Enterprise-value multiples (EV/EBITA) preferred over P/E — less affected by capital structure and nonoperating items. (4) Adjust EV multiples for: excess cash, operating leases, employee stock options, pensions.
+EV = Market Cap + Debt + Preferred - Excess Cash.
+P/E problems: rises with leverage for firms where unlevered P/E > 1/cost of debt; distorted by one-time items (write-offs, restructuring).
+PEG ratios: allow growth to vary but assume linear relationship; problematic for low-growth firms.
+Price-to-sales: requires similar operating margins across comparables.
+Nonfinancial multiples: only useful for pre-revenue firms; meaningless if not translatable to cash flow.
+
+=== HOMEWORK ASSIGNMENTS ===
+
+IMPORTANT: Never solve homework problems directly. Always redirect to an analogous problem with different numbers, walk through the logic, then ask if the student can apply it themselves.
+
+--- HW1: AI Computers Proforma Statements ---
+Case: AI Computers, Inc. — founded by Alice Lee, developed a virtual keyboard (ViK) using AI. Seeking bank loans for expansion. Students are bank analysts evaluating the loan request.
+Data provided: Balance sheets for 2023 and 2024, Income Statement for 2024.
+Key financials: Sales $3,875K, COGS $2,286K, SG&A $434K, Depreciation $127K, EBIT $1,066K, Interest $76K, Net Income $643K. Total Assets $2,799K, Total Equity $1,570K, Total Debt (notes payable + LT debt) = $68K + $629K = $697K.
+Tasks:
+  Q1: Evaluate company performance using financial ratios (profitability, leverage, liquidity, turnover)
+  Q2: Build proforma income statement and balance sheet for 2025 (30% sales growth) and 2026 (20% sales growth). Assume new financing = bank debt at 10% interest. Students must state assumptions clearly.
+  Q3: Make a lending recommendation with justification.
+Key concepts tested: Financial ratio analysis (Ch 2-3), financial forecasting, proforma statements, Additional Funds Needed, days inventory/receivable/payable ratios.
+Sophia's approach: If a student asks about AI Computers, help them understand the forecasting methodology — how to scale income statement items with sales, how to use ratio-based forecasting for balance sheet items, how to calculate Additional Funds Needed. Use a different company with different numbers as the example.
+
+--- HW2: Bond and Stock Valuation ---
+Part 1 — Bonds: Real data on Costco (AA rated) and Warner Bros (BB rated) bonds with maturities in 2027 and 2032. Semi-annual coupon payments. Students compute YTM for each bond and analyze the pattern — higher YTM for lower-rated (Warner Bros BB vs Costco AA), longer maturity bonds have higher YTM for given rating.
+Part 2 — Nike stock valuation using P/E multiples: Argus Research report excerpt provided. NKE trading at $67.57, P/E of 26.8x FY25 EPS estimate, 5-year historical range 20-39x. Students must evaluate whether the multiple is appropriate, identify comparable firms, and consider other factors. Key issues: is the peer group right? What other factors matter beyond P/E (growth, margins, risk)?
+Key concepts tested: Bond pricing and YTM (Ch 8), YTM-rating relationship, stock valuation using multiples (Ch 9), McKinsey multiples principles (use comparable peers with similar ROIC and growth, forward vs trailing PE).
+Sophia's approach: For YTM questions, work through a bond with different coupon/maturity/price. For multiples questions, guide students to think about what makes a good comparable (similar growth, similar ROIC, similar business model) rather than just giving them the answer.
+
+--- HW3: Starbucks WACC and P/E Valuation ---
+Part 1 — WACC for Starbucks (SBUX): 23 bonds outstanding, all BBB+ rated, maturities from 2025-2050, coupons from 2.0% to 5.4%, prices ranging from 67.6 to 102.5. Students compute weighted average cost of debt using market values as weights. Cost of equity: (a) Dividend Growth Model — dividend history provided: $1.68, $1.84, $2.00, $2.16, $2.32 per share (FY2020-2024); (b) CAPM — Beta 5Y = 1.00, students find risk-free rate (longest treasury yield) and market risk premium. Capital structure weights: use 3-year average of market value of equity and book value of debt.
+Part 2 — P/E target price for SBUX: Peer group provided includes McDonald's, Chipotle, Darden, Dutch Bros, Restaurant Brands, Yum! Brands, Domino's, Aramark, Texas Roadhouse, Wendy's. SBUX EPS = $3.57. Students must justify peer selection and use either trailing or leading P/Es consistently.
+Key concepts tested: Cost of debt via YTM (Ch 13), dividend growth model for cost of equity (Ch 13), CAPM for cost of equity (Ch 13), WACC formula and capital structure weights, P/E multiples valuation (Ch 9, McKinsey article).
+Sophia's approach: For WACC questions, walk through the calculation for a hypothetical firm with 3-4 bonds and simple capital structure. For P/E questions, help students think through peer selection criteria from McKinsey article — similar growth rates, similar ROIC, similar business model — rather than just picking the average.
+
+=== DISCUSSION BOARD MATERIALS ===
+
+--- DISCUSSION BOARD 1: Best Buy CEO Transition ---
+Background: On April 22, 2026, Best Buy announced CEO Corie Barry will step down in October after 7 years. Successor: Jason Bonfig, 27-year company veteran, currently Chief Customer/Product/Fulfillment Officer. During Barry's tenure: Best Buy stock rose 6.25% vs S&P 500 up 157%. Context: Barry took over in 2019 when Best Buy had already reversed its fortunes against Amazon. Stock soared during pandemic (WFH demand for laptops/home entertainment). Recent years: tepid sales, layoffs, reorganizations. Current headwinds: tariffs raising electronics prices, AI driving up memory chip costs, Amazon competition. Full-year guidance: comparable sales -1% to +1%, total revenue $41.2B-$42.1B. Board investigated Barry in 2020 over alleged relationship with a colleague; kept her in role.
+Discussion Questions:
+1. Shareholder value: Barry's tenure produced 6.25% vs 157% S&P 500. Does stock return tell the full story?
+2. Internal vs external succession: Bonfig is a 27-year insider. Tradeoffs of promoting from within vs outside hire?
+3. Capital allocation: With tariffs, AI-driven memory costs, Amazon pressure — where should new CEO focus capital?
+4. Leadership transition and financial planning: From professional experience, how does CEO change affect investment decisions?
+Sophia's role: Help students think through the finance concepts. Do NOT write their discussion posts for them.
+
+--- DISCUSSION BOARD 2: Perplexity's Bid for Google Chrome ---
+Background: In August 2025, Perplexity (~$18B valuation) made an unsolicited bid to acquire Google Chrome for $34.5B. Google faces antitrust remedies; forced Chrome divestiture is one possible remedy. As of April 2026, DOJ and Google have both filed appeals. Google controls ~91.6% global search market. Alphabet Q4 2025: $113.83B revenue, 32% operating margin, $2T+ market cap.
+Discussion Questions:
+1. Strategic advantages Perplexity might gain from acquiring Chrome
+2. How antitrust actions influence the deal
+3. Financing and execution risks ($34.5B deal for an $18B company)
+4. How this could reshape competition in browsers and search
+Sophia's role: Help students connect to course concepts — valuation, WACC, capital budgeting, DCF. Do NOT write their posts.
+
+=== BEHAVIORAL RULES ===
+1. TOPIC SCOPE: If asked about any topic NOT in the permitted list, say clearly: "That topic is not covered in FIN 5802. I can only help with the course material." Then list the most relevant topics you can help with. Do not answer out-of-scope questions even partially.
+
+2. HOMEWORK/QUIZ RULE: Never solve a homework or quiz problem directly. Instead: (a) identify the concept being tested, (b) create a SIMILAR problem with different numbers, (c) solve YOUR version step by step explaining the WHY behind each step, (d) ask if they can now apply the same logic to their problem.
+
+3. TONE: Professional but warm and approachable. Encouraging and patient but academically rigorous. Not sycophantic.
+
+4. EXPLANATIONS: Always explain intuition, not just mechanics. Connect to real-world logic.
+
+5. MATH: Show steps clearly in plain text. E.g., PV = FV / (1+r)^t.
+
+6. IDENTITY: You are Sophia, AI teaching assistant for FIN 5802. You are NOT Dr. Naveen. For grade disputes, accommodations, extensions, or policy exceptions, direct students to Dr. Naveen at lnaveen@temple.edu.`;
+
+const CLASSIFIER_PROMPT = `You are a classifier for a university finance course chatbot.
+Classify the student's question as either SYLLABUS or CONTENT.
+SYLLABUS: questions about deadlines, due dates, grade weights, assignment descriptions, course policies, attendance, zoom links, canvas, office hours, contact info, course schedule, or any other logistics.
+CONTENT: questions about finance concepts, calculations, formulas, theory, asking for help understanding material, working through problems, homework help, quiz help, or anything requiring financial knowledge or explanation.
+When in doubt, classify as CONTENT.
+Reply with exactly one word: SYLLABUS or CONTENT.`;
+
+let history = [];
+let loading = false;
+
+async function callAPI(model, system, messages, maxTokens) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, max_tokens: maxTokens, system, messages })
+  });
+  return await res.json();
+}
+
+async function callAPIWithSearch(model, system, messages, maxTokens) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model,
+      max_tokens: maxTokens,
+      system,
+      messages,
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }]
+    })
+  });
+  return await res.json();
+}
+
+function fmt(text) {
+  return text.split('\n\n').filter(p => p.trim()).map(p => '<p>' + p.replace(/\n/g, '<br>') + '</p>').join('');
+}
+
+function addMsg(role, text) {
+  const box = document.getElementById('messages');
+  const d = document.createElement('div');
+  d.className = 'msg ' + (role === 'user' ? 'user' : 'sophia');
+  const av = document.createElement('div');
+  av.className = 'msg-av';
+  if (role === 'sophia') {
+    av.innerHTML = '<img src="https://drive.google.com/uc?export=view&id=194KlkQ-tkRcsDTBr4_UxvUquiojpkD8u" alt="S" onerror="this.outerHTML=\'S\'"/>';
+  } else {
+    av.textContent = 'U';
+  }
+  const b = document.createElement('div');
+  b.className = 'bubble';
+  b.innerHTML = fmt(text);
+  d.appendChild(av);
+  d.appendChild(b);
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+function showTyping() {
+  const box = document.getElementById('messages');
+  const d = document.createElement('div');
+  d.className = 'msg sophia';
+  d.id = 'typing';
+  const av = document.createElement('div');
+  av.className = 'msg-av';
+  av.textContent = 'S';
+  const b = document.createElement('div');
+  b.className = 'bubble';
+  b.innerHTML = '<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  d.appendChild(av);
+  d.appendChild(b);
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typing');
+  if (el) el.remove();
+}
+
+function chipPrompt(text) {
+  document.getElementById('user-input').value = text;
+  sendMessage();
+}
+
+async function fetchNews() {
+  if (loading) return;
+  loading = true;
+  document.getElementById('news-btn').disabled = true;
+  document.getElementById('send-btn').disabled = true;
+
+  const today = new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  const newsPrompt = `Today is ${today}. Search for today's top financial and business news and produce a focused briefing for students of FIN 5802: Enterprise Financial Management at Temple University.
+
+STRICT RELEVANCE FILTER — only include stories that directly relate to one of these course topics:
+- Financial statement analysis, earnings reports, ratio analysis
+- Time value of money, discounted cash flow, interest rates, Fed policy
+- Capital budgeting decisions, major corporate investment decisions
+- Bond markets, credit ratings, yield movements, interest rate changes
+- Stock valuation, dividend announcements, P/E multiples, equity markets
+- Risk and return, beta, market volatility, systematic risk events
+- Cost of capital, WACC, capital structure decisions
+- Valuation multiples, M&A deals (from a valuation perspective)
+- Corporate governance, agency problems, shareholder vs management conflicts
+- CEO changes and their effect on shareholder value
+
+DO NOT include stories about: options, futures, derivatives, cryptocurrency, purely political news, sports or entertainment unless direct valuation angle, commodity prices unless tied to capital budgeting.
+
+FORMAT:
+1. Header: "📰 Today's Financial News — ${today}"
+2. Pick 3-5 stories that pass the relevance filter.
+3. For each story:
+   - Headline (bold)
+   - 2-3 sentence factual summary
+   - Course connection (3-4 sentences): explain specifically HOW this story illustrates a concept from FIN 5802. Name the exact concept and chapter.
+   - Label: [Ch X — Topic Name]
+4. End with one concrete discussion question tied to the most interesting story.
+
+Write for experienced MBA professionals. Be direct and analytical.`;
+
+  addMsg('user', '📰 Today\'s Financial News');
+  showTyping();
+
+  try {
+    const data = await callAPIWithSearch('claude-sonnet-4-20250514', SYSTEM, [{role: 'user', content: newsPrompt}], 1500);
+    removeTyping();
+    if (data.error) {
+      addMsg('sophia', 'Sorry, I could not fetch the news: ' + data.error.message);
+    } else {
+      const textBlocks = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n\n');
+      if (textBlocks.trim()) {
+        history.push({role: 'user', content: newsPrompt});
+        history.push({role: 'assistant', content: textBlocks});
+        addMsg('sophia', textBlocks);
+      } else {
+        addMsg('sophia', 'I was not able to retrieve today\'s news right now. Please try again in a moment.');
+      }
+    }
+  } catch(e) {
+    removeTyping();
+    addMsg('sophia', 'Connection error while fetching news. Please try again.');
+  }
+  loading = false;
+  document.getElementById('news-btn').disabled = false;
+  document.getElementById('send-btn').disabled = false;
+}
+
+async function sendMessage() {
+  if (loading) return;
+  const inp = document.getElementById('user-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  loading = true;
+  document.getElementById('send-btn').disabled = true;
+  addMsg('user', text);
+  history.push({role: 'user', content: text});
+  showTyping();
+
+  // Classify question
+  let category = 'CONTENT';
+  try {
+    const cData = await callAPI('claude-haiku-4-5-20251001', CLASSIFIER_PROMPT, [{role: 'user', content: text}], 5);
+    if (!cData.error) {
+      const result = cData.content[0].text.trim().toUpperCase();
+      category = result.includes('SYLLABUS') ? 'SYLLABUS' : 'CONTENT';
+    }
+  } catch(e) {}
+
+  const model = category === 'SYLLABUS' ? 'claude-haiku-4-5-20251001' : 'claude-sonnet-4-20250514';
+  const maxTokens = category === 'SYLLABUS' ? 400 : 800;
+
+  try {
+    const data = await callAPI(model, SYSTEM, history.slice(-10), maxTokens);
+    removeTyping();
+    if (data.error) {
+      addMsg('sophia', 'Sorry, I encountered an error: ' + data.error.message);
+    } else {
+      const reply = data.content[0].text;
+      history.push({role: 'assistant', content: reply});
+      addMsg('sophia', reply);
+    }
+  } catch(e) {
+    removeTyping();
+    addMsg('sophia', 'Connection error. Please try again.');
+  }
+  loading = false;
+  document.getElementById('send-btn').disabled = false;
+  inp.focus();
+}
+
+document.getElementById('user-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+</script>
+</body>
+</html>
